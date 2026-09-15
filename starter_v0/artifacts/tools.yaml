@@ -46,7 +46,7 @@ tools:
       required: [asset_id]
 
   - name: lookup_user
-    description: "Tra cứu người dùng trong danh bạ hỗ trợ."
+    description: "Tra cứu người dùng trong danh bạ hỗ trợ. Thông tin trả về có thể bao gồm employee_id, display_name, department, office, account_status, mfa_status, assigned_assets."
     parameters:
       type: object
       properties:
