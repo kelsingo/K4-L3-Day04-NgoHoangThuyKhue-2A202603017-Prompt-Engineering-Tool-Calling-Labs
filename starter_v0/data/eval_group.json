@@ -1,7 +1,298 @@
 {
   "dataset_id": "day04_v3_helpdesk_group",
   "dataset_role": "group",
-  "description": "Template intentionally left empty. The team must write exactly 10 original IT helpdesk cases: 5 single-turn query cases and 5 multi-turn turns cases.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "description": "Team-authored IT helpdesk evaluation cases: 5 single-turn query cases and 5 multi-turn turns cases.",
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "G01_meeting_room_kb_limit",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm tối đa 5 hướng dẫn về cách xử lý thiết bị trình chiếu không hoạt động trong phòng họp.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "search_kb",
+            "args": {
+              "query": "thiết bị trình chiếu không hoạt động trong phòng họp",
+              "category": "meeting_room",
+              "top_k": 5
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "kb_category_and_result_limit",
+        "difficulty": "medium",
+        "what_it_tests": "Nhận diện đúng nhóm meeting_room và truyền đúng giới hạn top_k=5 thay vì dùng giá trị mặc định."
+      }
+    },
+    {
+      "id": "G02_public_device_compatibility",
+      "phase": "B",
+      "suite": "group",
+      "query": "Kiểm tra khả năng tương thích của Dell Latitude 7440 với dock USB-C WD19.",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "search_device_info",
+            "args": {
+              "manufacturer": "Dell",
+              "model": "Latitude 7440",
+              "query_type": "compatibility"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "public_compatibility_lookup",
+        "difficulty": "medium",
+        "what_it_tests": "Yêu cầu kiểm tra tương thích công khai phải dùng search_device_info với query_type=compatibility."
+      }
+    },
+    {
+      "id": "G03_user_directory_exact_id",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tra cứu thông tin danh bạ của nhân viên EMP-4821.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup_user",
+            "args": {
+              "employee_id": "EMP-4821"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "directory_id_format",
+        "difficulty": "easy",
+        "what_it_tests": "Giữ nguyên employee ID hợp lệ theo đúng format EMP-abcd và không chuyển sang asset lookup."
+      }
+    },
+    {
+      "id": "G04_ambiguous_helpdesk_domain",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tôi không truy cập được hệ thống, hãy kiểm tra giúp tôi.",
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn không truy cập được hệ thống nào: VPN, email, SSO hay Wi-Fi?",
+              "response_type": "choice",
+              "options": [
+                "VPN",
+                "email",
+                "SSO",
+                "Wi-Fi"
+              ]
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "clarify_ambiguous_service",
+        "difficulty": "medium",
+        "what_it_tests": "Không được tự đoán dịch vụ khi yêu cầu chưa xác định hệ thống cần hỗ trợ."
+      }
+    },
+    {
+      "id": "G05_public_device_support_results",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm tối đa 2 trang hỗ trợ công khai cho Apple MacBook Pro 14-inch M3.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "search_device_info",
+            "args": {
+              "manufacturer": "Apple",
+              "model": "MacBook Pro 14-inch M3",
+              "query_type": "support",
+              "max_results": 2
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "public_support_result_limit",
+        "difficulty": "medium",
+        "what_it_tests": "Truyền đúng loại thông tin support và giới hạn max_results=2."
+      }
+    },
+    {
+      "id": "G06_refine_kb_query",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm hướng dẫn về lỗi kết nối mạng."
+        },
+        {
+          "role": "user",
+          "content": "Chỉ lấy các bài liên quan đến Wi-Fi và tối đa 1 kết quả."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "search_kb",
+            "args": {
+              "query": "lỗi kết nối mạng",
+              "category": "wifi",
+              "top_k": 1
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_refine_search_filters",
+        "difficulty": "medium",
+        "what_it_tests": "Áp dụng bộ lọc category và giới hạn kết quả được bổ sung ở lượt sau."
+      }
+    },
+    {
+      "id": "G07_refine_public_model",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm thông số kỹ thuật công khai cho laptop Lenovo ThinkPad T14."
+        },
+        {
+          "role": "user",
+          "content": "Đính chính: model đầy đủ là ThinkPad T14 Gen 4 và chỉ cần tối đa 1 kết quả."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "search_device_info",
+            "args": {
+              "manufacturer": "Lenovo",
+              "model": "ThinkPad T14 Gen 4",
+              "query_type": "specs",
+              "max_results": 1
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_public_model_correction",
+        "difficulty": "hard",
+        "what_it_tests": "Dùng model đầy đủ được sửa ở lượt sau và áp dụng giới hạn max_results mới nhất."
+      }
+    },
+    {
+      "id": "G08_policy_query_scope",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm chính sách về dữ liệu nhạy cảm."
+        },
+        {
+          "role": "user",
+          "content": "Cụ thể là quy định lưu trữ dữ liệu cá nhân, chỉ trả về 2 mục."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "policy",
+            "args": {
+              "query": "quy định lưu trữ dữ liệu cá nhân",
+              "policy_area": "data_privacy",
+              "top_k": 2
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_policy_scope_refinement",
+        "difficulty": "hard",
+        "what_it_tests": "Thu hẹp policy_area sang data_privacy và sử dụng top_k được yêu cầu ở lượt sau."
+      }
+    },
+    {
+      "id": "G09_directory_id_correction_only",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tra cứu nhân viên EMP-7314 trong danh bạ."
+        },
+        {
+          "role": "user",
+          "content": "Xin sửa lại, mã đúng là EMP-7315."
+        },
+        {
+          "role": "user",
+          "content": "Chỉ tra cứu bản ghi của mã đã sửa."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup_user",
+            "args": {
+              "employee_id": "EMP-7315"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_directory_id_correction",
+        "difficulty": "medium",
+        "what_it_tests": "Thông tin employee ID mới nhất phải thay thế ID ban đầu và chỉ thực hiện một lookup."
+      }
+    },
+    {
+      "id": "G10_cancel_public_lookup",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm thông tin driver công khai cho HP EliteBook 840 G10."
+        },
+        {
+          "role": "user",
+          "content": "Dừng yêu cầu đó, tôi không cần tra cứu nữa."
+        }
+      ],
+      "failure_type": "unnecessary_tool",
+      "expect": {
+        "tool_calls": []
+      },
+      "metadata": {
+        "skill": "multiturn_cancel_lookup",
+        "difficulty": "medium",
+        "what_it_tests": "Lệnh hủy mới nhất phải ngăn việc gọi search_device_info cho yêu cầu trước đó."
+      }
+    }
+  ]
 }
