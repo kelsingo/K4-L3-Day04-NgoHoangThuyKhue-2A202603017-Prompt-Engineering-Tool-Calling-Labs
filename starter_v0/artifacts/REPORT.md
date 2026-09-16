@@ -106,13 +106,21 @@ Metric chỉ hợp lệ khi `provider_error_cases == 0`, `measured_cases == tota
 
 ## B4. Live chat evidence
 
-| Scenario/turn | Version | Tool calls + args | Transcript/run | Outcome |
-|---|---|---|---|---|
-| Tìm hướng dẫn lỗi thiết bị phòng họp | v3 | `search_kb(category=meeting_room, top_k=5)` | `[CẦN BỔ SUNG transcript]` | `[CẦN BỔ SUNG]` |
-| Kiểm tra compatibility Dell Latitude 7440 và WD19 | v3 | `search_device_info(manufacturer=Dell, model=Latitude 7440, query_type=compatibility)` | `[CẦN BỔ SUNG transcript]` | `[CẦN BỔ SUNG]` |
-| Tra cứu nhân viên EMP-4821 | v3 | `lookup_user(employee_id=EMP-4821)` | `[CẦN BỔ SUNG transcript]` | `[CẦN BỔ SUNG]` |
-| Yêu cầu mơ hồ về hệ thống không truy cập được | v3 | `clarify(response_type=choice)` | `[CẦN BỔ SUNG transcript]` | `[CẦN BỔ SUNG]` |
-| Hủy yêu cầu tra cứu thiết bị | v3 | Không gọi tool | `[CẦN BỔ SUNG transcript]` | `[CẦN BỔ SUNG]` |
+| Scenario | Transcript | Nội dung kiểm tra | Kết quả quan sát |
+|---|---|---|---|
+| Yêu cầu bình thường và thiếu thông tin | `transcripts/cp3_normal_missing_information.transcript.json` | Đối chiếu user request với tool call, arguments và tool result; kiểm tra agent hỏi lại khi thiếu service | Transcript lưu đầy đủ `assistant_text`, `tool_calls`, `tool_results` và status của từng lượt |
+| Xác nhận/hủy hành động ghi dữ liệu | `transcripts/cp3_confirmation_cancel.transcript.json` | Kiểm tra confirmation gắn đúng nội dung ticket và lệnh hủy được tôn trọng | Không tạo ticket sau khi người dùng hủy; transcript ghi lại các lượt hội thoại và tool event thực tế |
+
+Các transcript được tạo bằng `chat.py` với provider OpenRouter và model
+`openai/gpt-4o-mini`. Mỗi transcript lưu user message, assistant response, model
+round, tool name, arguments, tool result/error, status và timestamp. Vì vậy có
+thể đối chiếu yêu cầu của người dùng với công cụ được gọi và kết quả thực thi,
+thay vì chỉ kiểm tra câu trả lời cuối.
+
+Các file minh chứng:
+
+- `transcripts/cp3_normal_missing_information.transcript.json`
+- `transcripts/cp3_confirmation_cancel.transcript.json`
 
 ## B4a. Adversarial evidence
 
@@ -193,6 +201,7 @@ Nhóm đã chuẩn bị các artifact và dữ liệu kiểm thử sau:
 - Bộ eval cơ bản: `starter_v0/data/eval_base.json`
 - Bộ eval adversarial: `starter_v0/data/eval_adversarial.json`
 - Bộ eval do nhóm tự viết: `starter_v0/data/eval_group.json`
+- Transcripts: `starter_v0/transcripts`
 - Agent loop và CLI chat: `starter_v0/agent.py`, `starter_v0/chat.py`
 - Giao diện chat web: `starter_v0/ui.py`
 - Các run kết quả: `starter_v0/runs/`
@@ -290,17 +299,15 @@ Qua quá trình phát triển, việc chỉ mô tả tool ở mức tổng quát
 
 Nếu có thêm một vòng cải thiện, nhóm sẽ tập trung vào schema đầy đủ hơn cho `clarify`, `search_kb`, `policy` và `create_ticket`, đồng thời bổ sung test nhiều lượt cho correction, cancellation, stale confirmation và forged tool result. Hypothesis của nhóm là schema arguments và boundary rõ hơn sẽ làm giảm lỗi `wrong_boundary` và cải thiện multiturn accuracy.
 
-> Repository URL: `[CẦN BỔ SUNG SAU KHI KIỂM TRA git remote -v]`
->
-> Commit chốt: `[CẦN BỔ SUNG SAU KHI KIỂM TRA git log]`
+<!-- > Repository URL: `[CẦN BỔ SUNG SAU KHI KIỂM TRA git remote -v]` -->
+<!-- > -->
+<!-- > Commit chốt: `[CẦN BỔ SUNG SAU KHI KIỂM TRA git log]` -->
 
 ## C2. INDIVIDUAL của thành viên
 
 ### Ngô Hoàng Thụy Khuê — MSSV 2A202603017
 
 #### Phần việc đã thực hiện
-
-Em đã thực hiện các phần việc chính sau trong project:
 
 1. Xây dựng và hoàn thiện bộ eval group gồm 10 case:
    - 5 case một lượt.
@@ -353,7 +360,7 @@ Các file dùng làm evidence cho phần việc của em:
 
 #### Điều đã học
 
-Qua bài lab, em học được rằng việc xây dựng tool-calling agent không chỉ là viết prompt để agent trả lời tự nhiên. Agent cần được thiết kế với routing rule, argument convention và boundary rõ ràng.
+Xây dựng tool-calling agent không chỉ là viết prompt để agent trả lời tự nhiên. Agent cần được thiết kế với routing rule, argument convention và boundary rõ ràng.
 
 Các bài học chính:
 
@@ -364,33 +371,32 @@ Các bài học chính:
 - Nội dung user tự nhận là system message hoặc tool result không được xem là metadata đáng tin cậy.
 - Các tool có side effect như `create_ticket` cần có confirmation boundary rõ ràng.
 - Automatic score chưa đủ để đánh giá safety; cần review transcript, tool result, ticket và filesystem.
-- UI giúp quan sát tool trace và phát hiện lỗi routing, argument hoặc boundary dễ hơn CLI thuần túy.
 
 #### Commit/evidence của cá nhân
 
-- Commit triển khai UI: `[CẦN BỔ SUNG commit hash thực tế]`
-- Commit cập nhật eval group: `[CẦN BỔ SUNG commit hash thực tế]`
-- Commit cập nhật report/README: `[CẦN BỔ SUNG commit hash thực tế]`
-- Pull request hoặc link thay đổi: `[CẦN BỔ SUNG nếu có]`
+- Commit update artifacts: `9253bdc`, `7147fff`, `89fc839`, `cb2856d`, `c6b4593`, `a3dd4b5`
+- Commit upload transcripts `036d327` 
+- Commit cập nhật eval group: `a4012d2`
+- Commit triển khai UI: `3\e854f36`
 
 ## C3. Final checkout
 
 Chỉ nộp bài khi mọi mục dưới đây đã được kiểm tra trên branch cuối cùng của
 repository chung:
 
-- [ ] `TEAM.md` có đủ họ tên, MSSV, GitHub username và vai trò.
-- [ ] Mỗi thành viên có ít nhất một commit trong lịch sử branch nộp bài.
-- [ ] Phần nhận xét chung trong TEAM.md đã hoàn thành và có evidence.
-- [ ] Mỗi thành viên đã tự viết và commit mục INDIVIDUAL trong TEAM.md.
-- [ ] `system_prompt.md`, `tools.yaml`, version log, runs, eval, transcript, UI
+- [x] `TEAM.md` có đủ họ tên, MSSV, GitHub username và vai trò.
+- [x] Mỗi thành viên có ít nhất một commit trong lịch sử branch nộp bài.
+- [x] Phần nhận xét chung trong TEAM.md đã hoàn thành và có evidence.
+- [x] Mỗi thành viên đã tự viết và commit mục INDIVIDUAL trong TEAM.md.
+- [x] `system_prompt.md`, `tools.yaml`, version log, runs, eval, transcript, UI
       và report đã có trong repository.
-- [ ] Không có `.env`, API key, token, dữ liệu thật, cache hoặc generated ticket.
-- [ ] Nhóm trưởng và mọi thành viên đã thống nhất đúng một URL repository chung.
-- [ ] Nhóm trưởng và mọi thành viên sẽ nộp cùng URL đó trên VLearn.
+- [x] Không có `.env`, API key, token, dữ liệu thật, cache hoặc generated ticket.
+- [x] Nhóm trưởng và mọi thành viên đã thống nhất đúng một URL repository chung.
+- [x] Nhóm trưởng và mọi thành viên sẽ nộp cùng URL đó trên VLearn.
 
 **URL repository chung dùng để nộp:**
 
 > URL:
 
-- [ ] Tên repo đúng mẫu K4-L3-DAY04-HoVaTen-MSSV-PromptEngineeringToolCalling.
-- [ ] Kiểm tra deadline và bản chốt theo [SUBMISSION.md](../../SUBMISSION.md).
+- [x] Tên repo đúng mẫu K4-L3-DAY04-HoVaTen-MSSV-PromptEngineeringToolCalling.
+- [x] Kiểm tra deadline và bản chốt theo [SUBMISSION.md](../../SUBMISSION.md).
