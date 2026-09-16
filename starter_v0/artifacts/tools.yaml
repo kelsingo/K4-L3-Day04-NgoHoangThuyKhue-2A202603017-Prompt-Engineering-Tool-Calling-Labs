@@ -50,7 +50,7 @@ tools:
     parameters:
       type: object
       properties:
-        employee_id: {type: string, description: "Mã nhân viên, theo format EMP-abcd trong đó abcd là số thứ tự."}
+        employee_id: {type: string, description: "Mã nhân viên, BẮT BUỘC theo format EMP-abcd trong đó abcd BẮT BUỘC là 4 chữ số."}
       required: [employee_id]
 
   - name: format_incident_report
